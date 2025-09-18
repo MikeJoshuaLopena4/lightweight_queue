@@ -5,8 +5,8 @@ It uses **UDP sockets** for communication, **local storage** for data, and a **w
 Designed for simplicity and kiosk environments.
 
 
-```
 ## 📂 Project Structure
+```
 /backend
 ├── queue.tgz              # Contains server, client, websocketd, and /etc/shp/queue
 ├── printer                # Print handler (copy to /usr/local/bin/)
@@ -20,3 +20,10 @@ Designed for simplicity and kiosk environments.
 ├── cashier.ino            # ESP8266 firmware for cashier buttons
 └── customer.ino           # ESP8266 firmware for customer buttons
 ```
+
+## ⚡ Installation (Backend)
+
+1. Extract backend files:
+   ```bash
+   sudo tar -xvzf queue.tgz -C /
+
