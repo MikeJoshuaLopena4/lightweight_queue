@@ -1,0 +1,189 @@
+<html>
+<body style="background-color: black; color: red; overflow: hidden">
+<div>
+<div style="font-size: 60pt">Now Serving:</div>
+<div style="width: 100vw;"><span style="display: block; font-size: 80vh; width: 100vw; text-align:center" id="now_serving" >1</span></div>
+<div style="display: none"><canvas id="myCanvas" width="384" height="384"></canvas></div>
+
+</div>
+
+<script>
+var senior = [];
+var regular = [];
+var maxRegular = 0;
+var maxSenior = 0;
+const savedEpoch = parseInt(localStorage.getItem("timestamp"), 10) || 0 ;
+if (savedEpoch !=0 ) {
+	const savedDayOfMonth = new Date(savedEpoch).getDate();
+	const dayOfMonth = new Date().getDate();
+
+	if ( savedDayOfMonth == dayOfMonth ) {
+		eval("var senior = "+localStorage.getItem("senior"));
+		eval("var regular = "+localStorage.getItem("regular"));
+		
+		if (!Array.isArray(senior)) senior=[];
+		if (!Array.isArray(regular)) regular=[];
+	}
+	console.log(senior,regular);
+}
+
+QConnect('ws://localhost:81/queue');
+
+function QConnect(ws_addr_port) {
+        console.log("connecting ... ");
+        if (typeof ws00+'' == 'undefined' || !ws00  ) {
+                console.log('socket connect to '+ws_addr_port);
+                ws00 = new WebSocket(ws_addr_port);
+                ws00.onmessage = function($e) {
+                        console.log($e.data);    
+						switch( $e.data.trim() ) {
+							case '1':
+									if (senior.length) senior.push(senior[senior.length-1]+1); else senior.push( maxSenior + 1 );									
+									localStorage.setItem("senior",JSON.stringify(senior));
+									localStorage.setItem("timestamp",Date.now().toString());
+									drawTicket("S",senior[senior.length-1]);
+									break;
+							case '2':
+									if (regular.length) regular.push(regular[regular.length-1]+1); else regular.push( maxRegular + 1);
+									localStorage.setItem("regular",JSON.stringify(regular));
+									localStorage.setItem("timestamp",Date.now().toString());
+									drawTicket("",senior[senior.length-1]);
+									break;
+							case '3':
+							
+									if (senior.length) {
+										maxSenior = senior.shift();
+										document.getElementById('now_serving').innerHTML = "P"+maxSenior;
+										localStorage.setItem("senior",JSON.stringify(regular));
+										localStorage.setItem("timestamp",Date.now().toString());
+									} else 
+									if (regular.length) {
+										maxRegular = regular.shift();
+										document.getElementById('now_serving').innerHTML = maxRegular;
+										localStorage.setItem("regular",JSON.stringify(regular));
+										localStorage.setItem("timestamp",Date.now().toString());
+									}
+									break;
+							case '4':							
+									senior=[];
+									regular=[];
+									localStorage.setItem("senior",JSON.stringify(senior));
+									localStorage.setItem("regular",JSON.stringify(regular));
+									localStorage.setItem("timestamp",Date.now().toString());
+									
+									break;
+									
+						}
+						console.log(senior, regular);
+                }
+                ws00.onclose = function(e) { ws00=null; console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason); setTimeout(function() { QConnect(ws_addr_port); }, 5000) }
+                ws00.onerror = function(err) { console.error('Socket encountered error: ', err.message, 'Closing socket'); ws00.close(); }
+                ws00.onconnect = function(e) { console.log('connected'); }
+        }
+}
+
+function canvasToThermalBitmap(canvas) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Get pixel data
+  const imageData = ctx.getImageData(0, 0, width, height).data;
+
+  // ESC/POS expects width in bytes (8 pixels per byte)
+  const bytesPerLine = Math.ceil(width / 8);
+  const bitmap = [];
+
+  for (let y = 0; y < height; y++) {
+    for (let xByte = 0; xByte < bytesPerLine; xByte++) {
+      let byte = 0;
+      for (let bit = 0; bit < 8; bit++) {
+        const x = xByte * 8 + bit;
+        if (x >= width) continue;
+
+        const idx = (y * width + x) * 4;
+        const r = imageData[idx];
+        const g = imageData[idx + 1];
+        const b = imageData[idx + 2];
+
+        // Convert to grayscale and threshold
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        const isBlack = luminance < 128;
+
+        byte |= (isBlack ? 1 : 0) << (7 - bit);
+      }
+      bitmap.push(byte);
+    }
+  }
+
+  return {
+    width: bytesPerLine,
+    height: height,
+    data: bitmap // Uint8 values
+  };
+}
+
+function drawTicket($p,$n) {
+
+	const now = new Date();
+	const formatted = now.toLocaleString("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true
+	});
+
+
+
+	const canvas = document.getElementById("myCanvas");
+	const ctx = canvas.getContext("2d");
+
+// Fill background white (optional)
+	ctx.fillStyle = "#FFFFFF";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	
+	ctx.fillStyle = "#000000";
+	ctx.font = "bold 20px Arial";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "top";
+
+// Draw number in center
+	ctx.fillText("Chester Enterprises", canvas.width / 2, 50);
+	ctx.fillText(formatted, canvas.width / 2, 80);
+
+// Set text style
+	ctx.fillStyle = "#000000";
+	ctx.font = "bold 150px Arial";
+	ctx.textAlign = "center";
+	ctx.textBaseline = "top";
+
+// Draw number in center
+	ctx.fillText($n, canvas.width / 2, 120);
+	
+	if ( $p=="S") {
+	
+		ctx.fillStyle = "#000000";
+		ctx.font = "bold 20px Arial";
+		ctx.textAlign = "center";
+		ctx.textBaseline = "top";
+
+// Draw number in center
+		ctx.fillText("Senior/PWD", canvas.width / 2, 250);
+	}
+
+	data = canvasToThermalBitmap(canvas);
+	fetch("http://localhsot:8080/print", {
+		method: "POST",
+		headers: { "Content-Type": "application/octet-stream" },
+		body: new Uint8Array(data.data) // bitmapData = Uint8Array from canvasToThermalBitmap
+	});
+
+	console.log(data)
+}
+
+
+</script>
+</body>
+</html>
