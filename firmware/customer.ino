@@ -1,12 +1,15 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-const char* ssid     = "TP-Link_996C";
-const char* password = "admin123";
+// WiFi credentials
+const char* ssid     = "YOUR_SSID";
+const char* password = "YOUR_PASSWORD";
 
 WiFiUDP udp;
 // Debian server IP
-IPAddress remoteIP(192, 168, 0, 105);
+//IPAddress remoteIP(192, 168, 0, 1);
+// queue server ip
+IPAddress remoteIP(xxx, xxx, xxx, xxx);
 const unsigned int remotePort = 2600;  
 
 // Button pins
@@ -34,7 +37,7 @@ void setup() {
 void loop() {
   for (int i = 0; i < 2; i++) {
     if (digitalRead(buttonPins[i]) == LOW) {
-      sendUDP(i + 1);   // Send button ID (1, 2, or 3)
+      sendUDP(i + 1);   // Send button ID (1, 2)
       delay(300);       // Debounce delay
     }
   }
