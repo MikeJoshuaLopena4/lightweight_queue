@@ -26,4 +26,18 @@ Designed for simplicity and kiosk environments.
 1. Extract backend files:
    ```bash
    sudo tar -xvzf queue.tgz -C /
+2. Copy printer script:
+   ```bash
+   sudo cp printer /usr/local/bin/printer
+2. Make all binaries executables:
+   ```bash
+   sudo chmod +x /usr/local/bin/server
+   sudo chmod +x /usr/local/bin/client
+   sudo chmod +x /usr/local/bin/websocketd
+   sudo chmod +x /usr/local/etc/shp/queue
+   sudo chmod +x /usr/local/bin/printer
+
+
+
+
 
