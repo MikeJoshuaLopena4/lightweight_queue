@@ -79,6 +79,10 @@ chmod +x deb-kiosk.sh
    ```bash
    systemctl status shp.service
 
+3. (Done)⚡
+   ```bash
+   reboot
+
 
 
 
