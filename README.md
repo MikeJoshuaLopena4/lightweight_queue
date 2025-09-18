@@ -19,3 +19,5 @@ Designed for simplicity and kiosk environments.
 /firmware
 ├── cashier.ino # ESP8266 firmware for cashier buttons
 └── customer.ino # ESP8266 firmware for customer buttons
+
+---
