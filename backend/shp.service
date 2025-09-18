@@ -1,0 +1,12 @@
+[Unit]
+Description=SH P Server + WebsocketD
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/start-shp.sh
+Restart=always
+User=root
+WorkingDirectory=/usr/local/bin
+
+[Install]
+WantedBy=multi-user.target
